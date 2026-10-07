@@ -22,6 +22,16 @@ Route::get('/transport-requests', [TransportRequestController::class, 'index'])
 Route::get('/transport-requests/{transportRequest}', [TransportRequestController::class, 'show'])
     ->name('transport-requests.show');
 
+/*|--------------------------------------------------------------------------
+| Debug Test Route
+|--------------------------------------------------------------------------
+*/
+Route::get('/debug-test', function () {
+    $requests = \App\Models\TransportRequest::where('status', 'pending')->get();
+
+    return view('debug-test', compact('requests'));
+});
+
 
 /*
 |--------------------------------------------------------------------------
