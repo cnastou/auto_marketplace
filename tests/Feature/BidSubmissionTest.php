@@ -69,8 +69,15 @@ class BidSubmissionTest extends TestCase
         $this->assertDatabaseCount('bids', 0);
     }
 
-    public function test_submitting_a_bid_invalid_dashboard_stats(): void
+    public function test_submitting_a_bid_invalidates_dashboard_stats(): void
     {
+        // Use an in-memory cache instead of real Redis during this test.
+        /*config()->set('cache.stores.redis', [
+            'driver' => 'array',
+        ]);
+
+        Cache::forgetDriver('redis');*/
+
         $user = User::factory()->create();
 
         $transportRequest = TransportRequest::factory()->create();
