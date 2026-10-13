@@ -61,6 +61,32 @@ class BidAcceptanceTest extends TestCase
         ]);
     }
 
+    public function test_owner_sees_accept_bid_action_on_transport_request_page(): void
+    {
+        $owner = User::factory()->create();
+        $bidder = User::factory()->create();
+
+        $transportRequest = TransportRequest::factory()->create([
+            'user_id' => $owner->id,
+            'status' => 'pending',
+        ]);
+
+        $bid = Bid::factory()->create([
+            'transport_request_id' => $transportRequest->id,
+            'user_id' => $bidder->id,
+            'amount' => 1400,
+            'status' => 'pending',
+        ]);
+
+        $response = $this
+            ->actingAs($owner)
+            ->get(route('transport-requests.show', $transportRequest));
+
+        $response->assertOk();
+        $response->assertSee(route('bids.accept', $bid), false);
+        $response->assertSee('Accept Bid', false);
+    }
+
     public function test_non_owner_cannot_accept_a_bid(): void
     {
         $owner = User::factory()->create();

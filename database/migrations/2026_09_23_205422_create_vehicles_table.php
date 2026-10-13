@@ -29,7 +29,7 @@ return new class extends Migration
                 'assigned',
                 'in_transit',
                 'delivered',
-                'cancelled'
+                'cancelled',
             ])->default('available');
 
             $table->timestamps();

@@ -26,7 +26,7 @@ return new class extends Migration
                 'accepted',
                 'in_transit',
                 'completed',
-                'cancelled'
+                'cancelled',
             ])->default('pending');
             $table->text('notes')->nullable();
 

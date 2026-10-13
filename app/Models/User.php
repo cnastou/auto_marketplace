@@ -1,13 +1,13 @@
 <?php
 
 namespace App\Models;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -31,16 +31,18 @@ class User extends Authenticatable
         ];
     }
 
-    public function vehicles(): HasMany {
+    public function vehicles(): HasMany
+    {
         return $this->hasMany(Vehicle::class);
     }
 
-    public function transportRequests(): HasMany {
+    public function transportRequests(): HasMany
+    {
         return $this->hasMany(TransportRequest::class);
     }
 
     public function bids(): HasMany
-{
-    return $this->hasMany(Bid::class);
-}
+    {
+        return $this->hasMany(Bid::class);
+    }
 }

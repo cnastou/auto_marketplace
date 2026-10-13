@@ -1,14 +1,15 @@
 <?php
 
+use App\Http\Controllers\BidController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransportRequestController;
-use App\Http\Controllers\BidController;
+use App\Models\TransportRequest;
+use App\Services\DashboardStatsService;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('home');
 })->name('home');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -27,11 +28,10 @@ Route::get('/transport-requests/{transportRequest}', [TransportRequestController
 |--------------------------------------------------------------------------
 */
 Route::get('/debug-test', function () {
-    $requests = \App\Models\TransportRequest::where('status', 'pending')->get();
+    $requests = TransportRequest::where('status', 'pending')->get();
 
     return view('debug-test', compact('requests'));
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -53,11 +53,17 @@ Route::patch('/bids/{bid}/accept', [BidController::class, 'accept'])
 |--------------------------------------------------------------------------
 */
 
-Route::get('/dashboard', function () {
+/*Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+*/
+Route::get('/dashboard', function (
+    DashboardStatsService $statsService
+) {
+    $stats = $statsService->get();
 
-
+    return view('dashboard', compact('stats'));
+})->middleware(['auth', 'verified'])->name('dashboard');
 /*
 |--------------------------------------------------------------------------
 | Profile
@@ -75,7 +81,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 });
-
 
 /*
 |--------------------------------------------------------------------------

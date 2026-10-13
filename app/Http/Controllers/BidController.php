@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bid;
+use App\Models\TransportRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class BidController extends Controller
@@ -23,11 +25,21 @@ class BidController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $transportRequest = TransportRequest::findOrFail($validated['transport_request_id']);
+        if ($transportRequest->user_id === auth()->id()) {
+            abort(403, 'You cannot bid on your own transport request.');
+        }
+
+        if ($transportRequest->status !== 'pending') {
+            abort(403, 'You cannot bid on a transport request that is not pending.');
+        }
+
         $validated['user_id'] = auth()->id();
         // $validated['user_id'] = 1;
         $validated['status'] = 'pending';
 
         Bid::create($validated);
+        Cache::store('redis')->forget('marketplace:dashboard:stats');
 
         return redirect()
             ->route('transport-requests.show', $validated['transport_request_id'])
@@ -56,6 +68,8 @@ class BidController extends Controller
                 'status' => 'accepted',
             ]);
         });
+
+        Cache::store('redis')->forget('marketplace:dashboard:stats');
 
         return redirect()
             ->route('transport-requests.show', $bid->transport_request_id)
