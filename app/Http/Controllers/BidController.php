@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bid;
 use App\Models\TransportRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -46,25 +47,37 @@ class BidController extends Controller
             ->with('success', 'Your bid has been submitted.');
     }
 
-    public function accept(Bid $bid)
+    public function accept(Bid $bid): RedirectResponse
     {
-        if ($bid->transportRequest->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        DB::transaction(function () use ($bid): void {
+            $transportRequest = TransportRequest::query()
+                ->lockForUpdate()
+                ->findOrFail($bid->transport_request_id);
 
-        DB::transaction(function () use ($bid) {
-            $bid->update([
+            if ($transportRequest->user_id !== auth()->id()) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $lockedBid = $transportRequest->bids()
+                ->lockForUpdate()
+                ->findOrFail($bid->id);
+
+            if ($transportRequest->status !== 'pending' || $lockedBid->status !== 'pending') {
+                abort(409, 'Only pending bids on pending transport requests can be accepted.');
+            }
+
+            $lockedBid->update([
                 'status' => 'accepted',
             ]);
 
-            Bid::where('transport_request_id', $bid->transport_request_id)
-                ->where('id', '!=', $bid->id)
+            $transportRequest->bids()
+                ->where('id', '!=', $lockedBid->id)
                 ->where('status', 'pending')
                 ->update([
                     'status' => 'rejected',
                 ]);
 
-            $bid->transportRequest->update([
+            $transportRequest->update([
                 'status' => 'accepted',
             ]);
         });
